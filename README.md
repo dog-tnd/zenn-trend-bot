@@ -1,0 +1,1 @@
+# zenn-trend-bot
