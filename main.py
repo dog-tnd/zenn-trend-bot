@@ -78,7 +78,7 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 
 
-@client.event
+@ client.event
 async def on_ready():
     print(f'{client.user} has connected to Discord!')
     # バックグラウンドタスクを起動
