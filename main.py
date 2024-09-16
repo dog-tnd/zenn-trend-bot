@@ -35,7 +35,7 @@ async def fetch_and_send_updates(client):
                         # 記事IDが既にデータベースに存在するかチェック
                         c.execute(
                             "SELECT * FROM articles WHERE id=?", (article_id,))
-                        if c.fetchone() is None and posted_count < 2:  # テスト用に2つの記事のみ送信
+                        if c.fetchone() is None and posted_count < 40:  #一度全部の記事を送信するため
                             title = article['title']
                             path = article['path']
                             message = f"新たな記事「{title}」が投稿されました。\nhttps://zenn.dev/{path}\n\n"
@@ -69,7 +69,7 @@ async def background_task(client):
         await fetch_and_send_updates(client)
         remove_old_articles()  # 古い記事を削除
         # 10分間スリープ (10分 = 600秒)
-        await asyncio.sleep(30)  # テスト用に30秒に変更
+        await asyncio.sleep(10)  # テスト用に15秒に変更
 
 
 intents = discord.Intents.default()
