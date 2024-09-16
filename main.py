@@ -38,8 +38,7 @@ async def fetch_and_send_updates(client):
                         if c.fetchone() is None and posted_count < 2:  # テスト用に2つの記事のみ送信
                             title = article['title']
                             path = article['path']
-                            message = f"新たな記事「{
-                                title}」が投稿されました。\nhttps://zenn.dev/{path}\n\n"
+                            message = f"新たな記事「{title}」が投稿されました。\nhttps://zenn.dev/{path}\n\n"
                             await channel.send(message)
                             # 現在時刻を記録
                             posted_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
