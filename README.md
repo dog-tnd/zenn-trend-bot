@@ -1,4 +1,5 @@
 # Discord Bot for Fetching Zenn Articles
+[![My Skills](https://skillicons.dev/icons?i=js,html,css,wasm)](https://skillicons.dev)
 
 このプロジェクトは、Zennの技術トレンド記事を取得し、指定されたDiscordチャンネルに投稿するDiscordボットです。
 
