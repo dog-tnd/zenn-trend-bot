@@ -1,3 +1,4 @@
+import json
 import os
 import discord
 from discord.ext import commands
@@ -10,19 +11,21 @@ import threading
 import asyncio
 from dotenv import load_dotenv
 
+print(os.getcwd())
+
 # 環境変数を読み込む
 load_dotenv()
 DISCORD_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID'))
 PASS_FIREBASE = os.getenv('PASS_FIREBASE')
-PASS_DOCUMENT = os.getenv('PASS_DOCUMENT')
+
 
 # Firebase用のライブラリをインポート、FirebaseAppを初期化
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import firestore
 cred = credentials.Certificate(PASS_FIREBASE)
-app = firebase_admin.initialize_app(cred) 
+app = firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 # Discord Botの設定
@@ -85,7 +88,7 @@ def remove_old_articles():
     one_week_ago = datetime.now() - timedelta(days=7)
     one_week_ago_str = one_week_ago.strftime('%Y-%m-%d %H:%M:%S')
     ref = db.collection(u'articles')
-    docs = ref.where(filter=firestore.FieldFilter("posted_at", "<", one_week_ago_str))
+    docs = ref.where(filter=firestore.FieldFilter("posted_at", "<", one_week_ago_str)).get()
     for doc in docs:
         doc.delete()
 
