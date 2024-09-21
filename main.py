@@ -5,6 +5,7 @@ import aiohttp
 import sqlite3
 from datetime import datetime, timedelta
 from flask import Flask, jsonify
+
 import threading
 import asyncio
 from dotenv import load_dotenv
@@ -13,13 +14,16 @@ from dotenv import load_dotenv
 load_dotenv()
 DISCORD_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
 CHANNEL_ID = int(os.getenv('DISCORD_CHANNEL_ID'))
+PASS_FIREBASE = os.getenv('PASS_FIREBASE')
+PASS_DOCUMENT = os.getenv('PASS_DOCUMENT')
 
-# SQLiteデータベースを初期化
-conn = sqlite3.connect('posted_articles.db')
-c = conn.cursor()
-c.execute('''CREATE TABLE IF NOT EXISTS articles
-             (id TEXT PRIMARY KEY, posted_at TEXT)''')
-conn.commit()
+# Firebase用のライブラリをインポート、FirebaseAppを初期化
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+cred = credentials.Certificate(PASS_FIREBASE)
+app = firebase_admin.initialize_app(cred) 
+db = firestore.client()
 
 # Discord Botの設定
 intents = discord.Intents.default()
@@ -53,15 +57,17 @@ async def fetch_and_send_updates():
                     posted_count = 0
                     for article in data:
                         article_id = article['id']
-                        c.execute("SELECT * FROM articles WHERE id=?", (article_id,))
-                        if c.fetchone() is None and posted_count < 10:
+                        ref = db.collection(u'articles')
+                        doc = ref.document(str(article_id)).get()
+                        if doc is None and posted_count < 10:
                             title = article['title']
                             path = article['path']
                             message = f"新たな記事「{title}」が投稿されました。\nhttps://zenn.dev/{path}\n\n"
                             await channel.send(message)
                             posted_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                            c.execute("INSERT INTO articles VALUES (?, ?)", (article_id, posted_at))
-                            conn.commit()
+                            ref.document(str(article_id)).set({
+                                "posted_at": posted_at 
+                            })
                             posted_count += 1
                     if posted_count == 0:
                         print("新しい記事はありません。")
@@ -70,12 +76,15 @@ async def fetch_and_send_updates():
     else:
         print(f"Channel with ID {CHANNEL_ID} not found")
 
+
 # 1週間以上経ったデータを削除
 def remove_old_articles():
     one_week_ago = datetime.now() - timedelta(days=7)
     one_week_ago_str = one_week_ago.strftime('%Y-%m-%d %H:%M:%S')
-    c.execute("DELETE FROM articles WHERE posted_at < ?", (one_week_ago_str,))
-    conn.commit()
+    ref = db.collection(u'articles')
+    docs = ref.where(filter=firestore.FieldFilter("posted_at", "<", one_week_ago_str)).stream()
+    for doc in docs:
+        doc.delete()
 
 # 10分ごとにチェックと削除を行うバックグラウンドタスク
 async def background_task():
