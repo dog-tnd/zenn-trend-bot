@@ -12,6 +12,7 @@ import asyncio
 from dotenv import load_dotenv
 
 print(os.getcwd())
+print(os.listdir())
 
 # 環境変数を読み込む
 load_dotenv()
