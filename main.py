@@ -82,7 +82,7 @@ def remove_old_articles():
     one_week_ago = datetime.now() - timedelta(days=7)
     one_week_ago_str = one_week_ago.strftime('%Y-%m-%d %H:%M:%S')
     ref = db.collection(u'articles')
-    docs = ref.where(filter=firestore.FieldFilter("posted_at", "<", one_week_ago_str)).stream()
+    docs = ref.where(filter=firebase.FieldFilter("posted_at", "<", one_week_ago_str)).stream()
     for doc in docs:
         doc.delete()
 
