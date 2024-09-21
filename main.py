@@ -58,16 +58,19 @@ async def fetch_and_send_updates():
                     for article in data:
                         article_id = article['id']
                         ref = db.collection(u'articles')
-                        doc = ref.document(str(article_id)).get()
-                        if doc is None and posted_count < 10:
+                        doc = ref.where(filter=firestore.FieldFilter("id", "==", article_id))
+                        count_doc = doc.count().get()[0][0].value
+                        if count_doc == 0 and posted_count < 10:
                             title = article['title']
                             path = article['path']
                             message = f"新たな記事「{title}」が投稿されました。\nhttps://zenn.dev/{path}\n\n"
                             await channel.send(message)
                             posted_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                             ref.document(str(article_id)).set({
-                                "posted_at": posted_at 
+                                "id": article_id,
+                                "posted_at": posted_at
                             })
+                            print(f"{posted_at}:「{title}」を送信しました")
                             posted_count += 1
                     if posted_count == 0:
                         print("新しい記事はありません。")
